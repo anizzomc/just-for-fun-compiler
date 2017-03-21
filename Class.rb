@@ -2,10 +2,10 @@ require './Member.rb'
 require './Method.rb'
 
 class JFFClass
-	attr_reader :name, :superclass
-	attr_accessor :metaclass
+	attr_reader :name
+	attr_accessor :metaclass, :superclass
 
-	def initialize(aName, aSuperClass, instance_members = [], class_members = [], imported_classes = [])
+	def initialize(aName, aSuperClass = NoClass.new, instance_members = [], class_members = [], imported_classes = [])
 		@name = aName
 		@superclass = aSuperClass
 		@instance_methods = Array.new
@@ -13,6 +13,10 @@ class JFFClass
 		@instance_members = instance_members
 		@imported_classes = imported_classes
 		@extra_headers = []
+	end
+
+	def add_instance_member(member)
+		@instance_members.push(member)
 	end
 
 	def add_extra_headers(header)
@@ -28,11 +32,12 @@ class JFFClass
 	end
 
 	def add_instance_method(aMethod)
+		aMethod.clazz = self
 		@instance_methods.push(aMethod)
 	end
 
 	def compile_include
-		ret = ""
+		ret = "/* #{name}.c */\n\n"
 		@imported_classes.each do | clazz |
 			ret += "#include <#{clazz.name}.h>\n"
 		end
@@ -59,6 +64,7 @@ class JFFClass
 		ret += compile_compile_method_prototypes + "\n\n"
 		ret += compile_class_methods + "\n\n"
 		ret += compile_instance_methods + "\n\n"
+		ret += compile_class_load + "\n\n"
 	end
 
 	def compile_instance_methods
@@ -114,108 +120,43 @@ class JFFClass
 	end
 
 	def compile_meta_struct
+		puts "#{name}::compile_meta_struct"
+		puts "#{metaclass.name}"
 		metaclass.compile_struct
 	end
 
-	
-	def self.integer 
-		self.new("Integer", 
-				self.object, 
-				[
-					JFFMember.new("int", "value")
-				],
-				[],
-				[string]
-		)
+	def compile_class_load
+		ret = "void load#{name}(Class_t class) {"
+		ret += "\n";
+		ret += "\t// Basic Properties\n";
+		ret += "\tclass->class = #{name}Class;\n"
+		ret += "\tclass->superclass = #{superclass.name};\n"
+		ret += "\tclass->name = #{name};\n"
+		ret += "\tclass->instanceSize = sizeof(struct #{name}_c);\n"
+		ret += "\t\n"
+		ret += "\t// Custom Properties\n"
+		ret += "\t\n"
+		ret += "\t//Instance Methods\n"
+
+		ret += "\tclass->methods = malloc(sizeof(Method_t)* _dummyMethod);\n"
+
+		@instance_methods.each do | method |
+			ret += "\tclass->methods[#{method.name}] = &_#{method.name};\n"
+		end
+
+		ret += "\n}"
+
 	end
-
-	def self.integer_meta 
-		self.new("IntegerMeta", 
-				self.meta_class, 
-				[],
-				[],
-				[]
-		)
-	end
-
-
-	def self.NoClass
-		NoClass.new
-	end
-
-	def self.meta_class
-		self.new("Class",
-			self.object,
-			[
-				JFFMember.new("Class_t", "superclass"),
-				JFFMember.new("char*", "name"),
-				JFFMember.new("size_t", "instanceSize"),
-				JFFMember.new("Method_t*", "methods"),
-
-			]
-			)
-	end
-
-
-
 end
 
 
-class ClassFactory
-	attr_reader :object
-
-	def initialize
-		@object = JFFClass.new(
-			"Object", 
-			NoClass.new, 
-			[
-				JFFMember.new("Class_t", "class")
-			]
-		)
-
-		@object.add_extra_headers("stdlib")
-		@object.add_extra_headers("strings")
-		@object.add_extra_headers("stdio")
-		@object.add_extra_headers("mm")
-		@object.add_extra_headers("mm_pool")
-
-		@class = JFFClass.new("Class",
-			@object,
-			[
-				JFFMember.new("Class_t", "superclass"),
-				JFFMember.new("char*", "name"),
-				JFFMember.new("size_t", "instanceSize"),
-				JFFMember.new("Method_t*", "methods"),
-
-			]
-		)
-		@object.metaclass = @class
-		@string = JFFClass.new("String", 
-				@object
-		)
-
-		object_equals = JFFMethod.new(:equals, [:other],
-			"\treturn other == this;\n"
-
-		)
-		object_class_new = JFFMethod.new(:new, [],
-  			"\tObject_t obj = D_mm_pool_add(D_mm_alloc(class->instanceSize, _dealloc_handler));\n" +
-  			"\tobj->class = class;\n" +
-  			"\tclass->methods[init](obj, list);\n"+
-  			"\treturn obj;\n"
-		)
-
-		@object.add_class_method(object_class_new)
-		@object.add_instance_method(object_equals)
-
-		@object.add_import_class(@string)
-	end
-
-
-
-end
 
 class NoClass
+
+	def name
+		"NULL"
+	end
+
 	def compile_instance_members
 		""
 	end

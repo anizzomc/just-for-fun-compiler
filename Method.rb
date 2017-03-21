@@ -1,5 +1,6 @@
 class JFFMethod
 	attr_reader :name
+	attr_accessor :clazz
 
 	def initialize(aName, arguments, body)
 		@name = aName
@@ -16,7 +17,7 @@ class JFFMethod
 	end
 
 	def compile_heading
-		"static Object_t _#{name}(Object_t this, va_list* va_arg) {\n"
+		"static Object_t _#{name}(#{clazz.name}_t this, va_list* va_arg) {\n"
 	end
 
 	def compile_arguments
