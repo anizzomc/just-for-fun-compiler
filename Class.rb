@@ -15,6 +15,10 @@ class JFFClass
 		@extra_headers = []
 	end
 
+	def meta?
+		!metaclass.nil?
+	end
+
 	def add_instance_member(member)
 		@instance_members.push(member)
 	end
@@ -65,6 +69,13 @@ class JFFClass
 		ret += compile_class_methods + "\n\n"
 		ret += compile_instance_methods + "\n\n"
 		ret += compile_class_load + "\n\n"
+		ret += compile_meta_class_load + "\n\n"
+		ret += compile_general_load + "\n\n"
+		ret
+	end
+
+	def methodz
+		@instance_methods
 	end
 
 	def compile_instance_methods
@@ -91,7 +102,8 @@ class JFFClass
 		"static struct #{name}Class_c #{name.downcase} = {};\n" +
 		"static struct Class_c #{name.downcase}Meta = {};\n\n" + 
 		"const Class_t #{name} = &#{name.downcase};\n" + 
-		"const Class_t #{name}Class = &#{name.downcase}Meta;\n"
+		"const Class_t #{name}Class = &#{name.downcase}Meta;\n" +
+		"const Class_t #{name}ClassClass = &#{name.downcase}Meta;\n"
 	end
 
 	def compile_header
@@ -120,44 +132,40 @@ class JFFClass
 	end
 
 	def compile_meta_struct
-		puts "#{name}::compile_meta_struct"
-		puts "#{metaclass.name}"
 		metaclass.compile_struct
 	end
 
+	def compile_meta_class_load
+		metaclass.compile_class_load
+	end
+
 	def compile_class_load
-		ret = "void load#{name}(Class_t class) {"
+		ret = "void load#{name}(Class_t class) {\n"
+		ret += "\tload#{superclass.name}(class);\n"
 		ret += "\n";
 		ret += "\t// Basic Properties\n";
 		ret += "\tclass->class = #{name}Class;\n"
 		ret += "\tclass->superclass = #{superclass.name};\n"
-		ret += "\tclass->name = #{name};\n"
+		ret += "\tclass->name = \"#{name}\";\n"
 		ret += "\tclass->instanceSize = sizeof(struct #{name}_c);\n"
 		ret += "\t\n"
 		ret += "\t// Custom Properties\n"
 		ret += "\t\n"
 		ret += "\t//Instance Methods\n"
 
-		ret += "\tclass->methods = malloc(sizeof(Method_t)* _dummyMethod);\n"
-
 		@instance_methods.each do | method |
-			ret += "\tclass->methods[#{method.name}] = &_#{method.name};\n"
+			ret += "\tclass->methods[#{method.name}] = &_#{method.clazz.name}_#{method.name};\n"
 		end
 
 		ret += "\n}"
+		ret
 
 	end
-end
 
-
-
-class NoClass
-
-	def name
-		"NULL"
-	end
-
-	def compile_instance_members
-		""
+	def compile_general_load
+		ret = "void #{name.downcase}ClassLoad(void) {\n"
+		ret += "\tload#{name}(#{name});\n" 
+		ret += "\tload#{metaclass.name}(#{metaclass.name});\n"
+		ret += "}"
 	end
 end

@@ -1,29 +1,31 @@
 class JFFMethod
 	attr_reader :name
 	attr_accessor :clazz
+	attr_reader :ret
 
-	def initialize(aName, arguments, body)
+	def initialize(aName, ret ,arguments, body)
 		@name = aName
 		@arguments = arguments
 		@body = body
+		@ret = ret
 	end
 
 	def compile
-		compile_heading + compile_arguments + compile_body + "\n}\n"
+		signature + " {\n" + compile_arguments + compile_body + "\n}\n"
 	end
 
 	def compile_body
 		@body
 	end
 
-	def compile_heading
-		"static Object_t _#{name}(#{clazz.name}_t this, va_list* va_arg) {\n"
+	def signature
+		"static #{ret} _#{clazz.name}_#{name}(#{clazz.name}_t this, va_list* va_arg)"
 	end
 
 	def compile_arguments
 		ret = ""
 		@arguments.each do | argument |
-			ret += "\tObject_t #{argument} = va_arg(*list, Object_t);\n"
+			ret += "\t#{argument[:type]} #{argument[:name]} = va_arg(*list, #{argument[:type]});\n"
 		end
 		ret
 	end

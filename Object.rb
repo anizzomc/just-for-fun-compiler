@@ -1,4 +1,5 @@
 require './ClassManager.rb'
+require './NoClass.rb'
 
 
 classMngr = ClassManager.instance
@@ -29,11 +30,11 @@ meta.add_instance_member(JFFMember.new("Method_t*", "methods"))
 
 
 
-clazz.add_instance_method(JFFMethod.new(:equals, [:other],
+clazz.add_instance_method(JFFMethod.new(:equals, :int, [{type: :Object_t, name: :other}],
 			"\treturn other == this;\n"
 ))
 
-meta.add_instance_method(JFFMethod.new(:new, [],
+meta.add_instance_method(JFFMethod.new(:new, :Object_t, [],
 	"\tObject_t obj = D_mm_pool_add(D_mm_alloc(class->instanceSize, _dealloc_handler));\n" +
 	"\tobj->class = class;\n" +
 	"\tclass->methods[init](obj, list);\n"+
