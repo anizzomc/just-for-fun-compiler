@@ -18,6 +18,10 @@ class ClassManager
 		@@instance ||= self.new
 	end
 
+	def principal_classes
+		@classes.values.select {|clazz| !clazz.meta? }
+	end
+
 	def all_methods
 		ret = []
 		@classes.each_value do |clazz|

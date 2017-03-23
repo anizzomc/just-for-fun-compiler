@@ -1,11 +1,12 @@
 require './Member.rb'
 require './Method.rb'
-
+require './NoClass.rb'
 class JFFClass
 	attr_reader :name
 	attr_accessor :metaclass, :superclass
 
-	def initialize(aName, aSuperClass = NoClass.new, instance_members = [], class_members = [], imported_classes = [])
+
+	def initialize(aName, aSuperClass=NoClass.new, instance_members = [], class_members = [], imported_classes = [])
 		@name = aName
 		@superclass = aSuperClass
 		@instance_methods = Array.new
@@ -15,8 +16,12 @@ class JFFClass
 		@extra_headers = []
 	end
 
+	def to_s
+		"#{name} Class"
+	end
+
 	def meta?
-		!metaclass.nil?
+		metaclass.nil?
 	end
 
 	def add_instance_member(member)
