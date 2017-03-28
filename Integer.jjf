@@ -1,0 +1,18 @@
+
+class Integer extends Object {
+	property value: int;
+
+	def toString() : String {
+		char *buff[20];
+		return send(String, new, itoa(buff, this->value, 10));
+	}
+
+	def equals(other: Object_t) : int {
+		if(other == NULL) return false;
+		if(other == this) return true;
+		if(send(this, getClass) != send(other, getClass)) return false;
+		Integer_t integer = (Integer_t) other;
+		return other->value == this->value;
+	}
+	
+}
