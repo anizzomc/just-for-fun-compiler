@@ -55,11 +55,10 @@ class JFFClass
 
 
 	def compile_extra_headers
-		ret = ""
-		@extra_headers.each do | header |
-			ret += "#include <#{header}.h>\n"
-		end
-		ret
+		@extra_headers
+	end
+
+	def compile_pre_class
 	end
 
 	def compile
@@ -76,6 +75,7 @@ class JFFClass
 		ret += compile_class_load + "\n\n"
 		ret += compile_meta_class_load + "\n\n"
 		ret += compile_general_load + "\n\n"
+		ret += compile_raw_post_class
 		ret
 	end
 
@@ -91,6 +91,10 @@ class JFFClass
 		ret
 	end
 
+	def compile_raw_post_class
+		@raw_post_class 
+	end
+
 	def compile_class_methods
 		metaclass.compile_instance_methods
 	end
@@ -99,8 +103,8 @@ class JFFClass
 		""
 	end
 
-	def compile_extra_prototypes
-		""
+	def compile_raw_pre_class
+		@pre_class_raw || ""
 	end
 
 	def compile_const_symbols

@@ -1,0 +1,9 @@
+http://rubular.com/
+
+
+Class Declaration
+	\Aclass (\w(\w)*) < (\w(\w)*)\z
+
+
+Method Declaration
+def ((\w)+)\(((((\w)+)\s*:\s*((\w)+))?(\,\s*((\w)+)\s*:\s*((\w)+))*)\)\s*:\s*(\w+)
